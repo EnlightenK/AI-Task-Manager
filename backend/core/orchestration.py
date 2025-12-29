@@ -66,19 +66,26 @@ async def process_file(file_path: Path):
 
     # 2. AI Analysis
     logger.info("Running AI analysis...")
-    analysis = await analyze_content(content)
+    try:
+        analysis = await analyze_content(content)
+    except Exception as e:
+        logger.error(f"AI Analysis failed for {file_path}: {e}")
+        return
     
     # 3. DB Insertion
     logger.info("Saving to database...")
     try:
+        # Convert datetime to string for SQLite
+        deadline_str = analysis.deadline.strftime("%Y-%m-%d") if analysis.deadline else "None"
+        
         task_id = create_task(
             source_file=file_path.name,
             original_subject=subject,
-            summary=analysis.summary,
-            deadline=analysis.deadline,
+            summary=analysis.title,          # Map title to summary
+            deadline=deadline_str,
             project_id=analysis.project_id,
-            assignee=analysis.assignee,
-            reasoning=analysis.reasoning,
+            assignee=analysis.assigned_to,   # Map assigned_to to assignee
+            reasoning=f"{analysis.description}\n(Confidence: {analysis.confidence:.2f})", # Combine desc and confidence
             status="PENDING"
         )
     except Exception as e:

@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import List, Optional
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
@@ -33,7 +33,7 @@ class TaskAnalysisAgent:
             team = load_team()
             
             projects_str = "\n".join([f"- {p['id']}: {p['name']} ({p['context']})" for p in projects])
-            team_str = "\n".join([f"- {t['name']} ({t['role']}): {', '.join(t['duties'])}. Projects: {', '.join(t['projects'])} " for t in team])
+            team_str = "\n".join([f"- {t['name']} ({t['role']}): {', '.join(t['duties'])}. Projects: {', '.join(t['projects'])}" for t in team])
             
             return f"""
             Your job is to analyze incoming correspondence and route it to the correct engineer.
@@ -61,3 +61,17 @@ class TaskAnalysisAgent:
         except Exception as e:
             logger.error(f"AI Analysis failed: {e}")
             raise e
+
+# Singleton instance
+_agent_instance: Optional[TaskAnalysisAgent] = None
+
+async def analyze_content(content: str) -> TaskProposal:
+    """
+    Standalone function to analyze content using a singleton TaskAnalysisAgent.
+    This maintains backward compatibility with consumers expecting a function.
+    """
+    global _agent_instance
+    if _agent_instance is None:
+        _agent_instance = TaskAnalysisAgent()
+    
+    return await _agent_instance.analyze_content(content)
