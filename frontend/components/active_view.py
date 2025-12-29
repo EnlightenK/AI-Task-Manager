@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from frontend.services.api_client import fetch_tasks, update_task_details, archive_task, fetch_projects, fetch_team
 
 def render_active_view():
@@ -10,75 +11,99 @@ def render_active_view():
         st.info("No active tasks.")
         return
 
-    # Load options
-    projects = fetch_projects()
-    team = fetch_team()
-    project_options = [p['id'] for p in projects]
-    assignee_options = [t['name'] for t in team]
+    # --- Part 1: Task Table ---
+    st.subheader("Overview")
+    
+    # Create DataFrame for display
+    df = pd.DataFrame(tasks)
+    
+    # Select columns to display
+    display_df = df[['id', 'summary', 'project_id', 'assignee', 'deadline']].copy()
+    display_df.rename(columns={
+        'id': 'ID',
+        'summary': 'Summary',
+        'project_id': 'Project',
+        'assignee': 'Assignee',
+        'deadline': 'Due Date'
+    }, inplace=True)
 
-    for task in tasks:
-        with st.container(border=True):
-            # Unique key for edit mode state
-            edit_key = f"edit_mode_{task['id']}"
-            if edit_key not in st.session_state:
-                st.session_state[edit_key] = False
+    # Use session state to track selection
+    if "selected_task_id" not in st.session_state:
+        st.session_state["selected_task_id"] = None
 
-            # Layout: Checkbox | Content
-            col_check, col_content = st.columns([0.5, 11.5])
+    # Use dataframe with selection
+    # Note: selection_mode="single-row" is available in newer Streamlit versions.
+    event = st.dataframe(
+        display_df,
+        use_container_width=True,
+        hide_index=True,
+        selection_mode="single-row",
+        on_select="rerun"
+    )
+
+    # Handle selection
+    selected_rows = event.selection.rows
+    if selected_rows:
+        index = selected_rows[0]
+        selected_task_id = display_df.iloc[index]['ID']
+        st.session_state["selected_task_id"] = selected_task_id
+    
+    # --- Part 2: Detail/Edit View ---
+    st.divider()
+    
+    if st.session_state["selected_task_id"]:
+        # Find the full task object
+        selected_task = next((t for t in tasks if t['id'] == st.session_state["selected_task_id"]), None)
+        
+        if selected_task:
+            st.subheader(f"Editing: {selected_task['summary']}")
             
-            with col_check:
-                # Using a callback or checking logic after rendering
-                # Note: modifying state during render can be tricky, but checkbox returns bool.
-                # If checked, we archive.
-                is_done = st.checkbox("Mark as done", key=f"done_{task['id']}", label_visibility="collapsed")
-                if is_done:
-                    archive_task(task['id'])
-                    st.rerun()
+            # Load options
+            projects = fetch_projects()
+            team = fetch_team()
+            project_options = [p['id'] for p in projects]
+            assignee_options = [t['name'] for t in team]
 
-            with col_content:
-                if st.session_state[edit_key]:
-                    # --- Edit Mode ---
-                    with st.form(key=f"form_{task['id']}"):
-                        new_summary = st.text_input("Summary", value=task['summary'])
-                        
-                        c1, c2, c3 = st.columns(3)
-                        with c1:
-                            new_project = st.selectbox("Project", project_options, index=project_options.index(task['project_id']) if task['project_id'] in project_options else 0)
-                        with c2:
-                            new_assignee = st.selectbox("Assignee", assignee_options, index=assignee_options.index(task['assignee']) if task['assignee'] in assignee_options else 0)
-                        with c3:
-                            new_deadline = st.text_input("Deadline", value=task['deadline'])
-                        
-                        col_save, col_cancel = st.columns([1, 1])
-                        
-                        if col_save.form_submit_button("Save Changes", type="primary"):
-                            update_task_details(task['id'], {
-                                "summary": new_summary,
-                                "project_id": new_project,
-                                "assignee": new_assignee,
-                                "deadline": new_deadline
-                            })
-                            st.session_state[edit_key] = False
-                            st.rerun()
-                            
-                        # Note: 'Cancel' button inside a form behaves like submit. 
-                        # We use a standard button outside or rely on form logic.
-                        # For simplicity in Streamlit forms, usually just 'Save'. 
-                        # If we want a cancel, we might need a workaround or just toggle state outside form.
-                        # Let's add a "Stop Editing" button outside the form if needed, or just let user Save.
-                        # Actually, let's keep it simple: Save updates and closes.
-                    
-                else:
-                    # --- View Mode ---
-                    st.subheader(task['summary'])
-                    
-                    info_cols = st.columns([3, 3, 3, 1])
-                    info_cols[0].write(f"**Project:** {task['project_id']}")
-                    info_cols[1].write(f"**Assignee:** {task['assignee']}")
-                    info_cols[2].write(f"**Due:** {task['deadline']}")
-                    
-                    if info_cols[3].button("✏️", key=f"edit_btn_{task['id']}"):
-                        st.session_state[edit_key] = True
+            with st.container(border=True):
+                # Actions Bar
+                c_done, c_space = st.columns([1, 5])
+                with c_done:
+                    if st.button("✅ Mark as Complete", type="primary"):
+                        archive_task(selected_task['id'])
+                        st.session_state["selected_task_id"] = None
                         st.rerun()
+
+                with st.form(key="edit_task_form"):
+                    new_summary = st.text_input("Summary", value=selected_task['summary'])
                     
-                    st.caption(f"Source: {task['source_file']}")
+                    c1, c2, c3 = st.columns(3)
+                    with c1:
+                        # Handle case where current value isn't in options
+                        curr_proj = selected_task['project_id']
+                        p_idx = project_options.index(curr_proj) if curr_proj in project_options else 0
+                        new_project = st.selectbox("Project", project_options, index=p_idx)
+                        
+                    with c2:
+                        curr_assignee = selected_task['assignee']
+                        a_idx = assignee_options.index(curr_assignee) if curr_assignee in assignee_options else 0
+                        new_assignee = st.selectbox("Assignee", assignee_options, index=a_idx)
+                        
+                    with c3:
+                        new_deadline = st.text_input("Deadline", value=selected_task['deadline'])
+                    
+                    st.text_area("AI Reasoning / Notes", value=selected_task.get('reasoning', ''), disabled=True)
+                    st.caption(f"Source File: {selected_task['source_file']}")
+
+                    if st.form_submit_button("Save Changes"):
+                        update_task_details(selected_task['id'], {
+                            "summary": new_summary,
+                            "project_id": new_project,
+                            "assignee": new_assignee,
+                            "deadline": new_deadline
+                        })
+                        st.success("Task updated successfully!")
+                        st.rerun()
+        else:
+            st.info("Selected task not found (it might have been completed).")
+    else:
+        st.info("Select a task from the table above to view details and edit.")
