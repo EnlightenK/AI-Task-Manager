@@ -74,7 +74,7 @@ class TaskAnalysisAgent:
     async def analyze_content(self, content: str) -> TaskProposal:
         try:
             result = await self.agent.run(content)
-            return result.data
+            return result.output
         except Exception as e:
             logger.error(f"AI Analysis failed: {e}")
             raise e

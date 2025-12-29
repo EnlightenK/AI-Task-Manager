@@ -36,7 +36,7 @@ async def test_analyze_content_success():
     
     # Mocking the agent.run method
     mock_result = MagicMock()
-    mock_result.data = TaskProposal(
+    mock_result.output = TaskProposal(
         title="Test Task",
         description="Test Description",
         deadline=datetime(2025, 12, 31),
