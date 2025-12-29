@@ -12,8 +12,8 @@
 - [x] Task: Conductor - User Manual Verification 'File Parsers' (Protocol in workflow.md) (5a2e8a6)
 
 ## Phase 3: AI Agent Implementation
-- [ ] Task: Configure PydanticAI client for Ollama in `backend/services/ai_service.py`.
-- [ ] Task: Implement `TaskAnalysisAgent` class.
+- [x] Task: Configure PydanticAI client for Ollama in `backend/services/ai_service.py`. (d1de1d4)
+- [x] Task: Implement `TaskAnalysisAgent` class. (d1de1d4)
     -   Define the system prompt to include current time, list of projects, and team roster.
     -   Define the `analyze_content` method that returns a `TaskProposal`.
 - [ ] Task: Conductor - User Manual Verification 'AI Agent Implementation' (Protocol in workflow.md)
