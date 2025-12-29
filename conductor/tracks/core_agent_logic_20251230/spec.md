@@ -10,7 +10,7 @@ AI Sentinel's core value proposition is the automated conversion of unstructured
 
 ## Technical Requirements
 -   **Framework:** PydanticAI for agent definition and structured output validation.
--   **LLM:** Ollama running `llama3.2` locally.
+-   **LLM:** Ollama Cloud running `gpt-oss:120b`.
 -   **Parsers:** `extract-msg` for Outlook files; Python standard library for text and MIME emails.
 
 ## Data Structures

@@ -11,7 +11,7 @@ from backend.utils.config import load_projects, load_team
 logger = logging.getLogger(__name__)
 
 class TaskAnalysisAgent:
-    def __init__(self, model_name: str = "llama3.2", base_url: str = "http://localhost:11434/v1"):
+    def __init__(self, model_name: str = "gpt-oss:120b", base_url: str = "http://localhost:11434/v1"):
         self.model_name = model_name
         self.base_url = base_url
         # Configure the Ollama model using OpenAIChatModel and OllamaProvider
@@ -22,7 +22,8 @@ class TaskAnalysisAgent:
         self.agent = Agent(
             self.model,
             output_type=TaskProposal,
-            system_prompt="You are an expert Civil Engineering Project Manager AI (The Sentinel)."
+            system_prompt="You are an expert Civil Engineering Project Manager AI (The Sentinel).",
+            retries=3  # Increase retries to handle validation errors
         )
         self._setup_agent()
 
@@ -33,7 +34,7 @@ class TaskAnalysisAgent:
             team = load_team()
             
             projects_str = "\n".join([f"- {p['id']}: {p['name']} ({p['context']})" for p in projects])
-            team_str = "\n".join([f"- {t['name']} ({t['role']}): {', '.join(t['duties'])}. Projects: {', '.join(t['projects'])}" for t in team])
+            team_str = "\n".join([f"- {t['name']} ({t['role']}): {', '.join(t['duties'])}. Projects: {', '.join(t['projects'])} " for t in team])
             
             return f"""
             Your job is to analyze incoming correspondence and route it to the correct engineer.
@@ -47,10 +48,11 @@ class TaskAnalysisAgent:
             **Rules:**
             1. EXTRACT a 10-20 word action-oriented summary for the title.
             2. EXTRACT the detailed description.
-            3. EXTRACT the deadline. If none, infer a reasonable one (e.g., 7 days from now) and state it.
+            3. EXTRACT the deadline. If none is explicitly stated, return null/None.
             4. ASSIGN to the most appropriate team member based on their Role, Duties, and assigned Projects.
                - CRITICAL: You MUST ONLY assign tasks to a team member if the Project ID matches one of their allowed 'projects'.
-            5. IDENTIFY the Project ID based on the content context.
+               - If no match found, return null/None.
+            5. IDENTIFY the Project ID based on the content context. If unsure, return null/None.
             6. PROVIDE a confidence score between 0.0 and 1.0.
             """
 
