@@ -6,13 +6,13 @@ from pydantic_ai.models.openai import OpenAIChatModel
 from backend.core.models import TaskProposal
 
 def test_task_analysis_agent_init():
-    agent_service = TaskAnalysisAgent(model_name="llama3")
-    assert agent_service.model_name == "llama3"
+    agent_service = TaskAnalysisAgent(model_name="llama3.2")
+    assert agent_service.model_name == "llama3.2"
     assert isinstance(agent_service.agent.model, OpenAIChatModel)
 
 def test_task_analysis_agent_default_model():
     agent_service = TaskAnalysisAgent()
-    assert agent_service.model_name == "llama3"
+    assert agent_service.model_name == "llama3.2"
 
 @pytest.mark.asyncio
 async def test_analyze_content_success():

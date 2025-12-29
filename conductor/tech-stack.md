@@ -4,7 +4,7 @@
 - **Language:** Python 3.9+
 - **Frontend UI:** Streamlit (v1.x)
 - **AI Agent Framework:** PydanticAI
-- **LLM Runtime:** Ollama (specifically llama3)
+- **LLM Runtime:** Ollama (specifically llama3.2)
 
 ## Infrastructure & Libraries
 - **File System Watcher:** Watchdog (for inbox monitoring)

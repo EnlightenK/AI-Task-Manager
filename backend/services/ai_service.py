@@ -11,7 +11,7 @@ from backend.utils.config import load_projects, load_team
 logger = logging.getLogger(__name__)
 
 class TaskAnalysisAgent:
-    def __init__(self, model_name: str = "llama3", base_url: str = "http://localhost:11434/v1"):
+    def __init__(self, model_name: str = "llama3.2", base_url: str = "http://localhost:11434/v1"):
         self.model_name = model_name
         self.base_url = base_url
         # Configure the Ollama model using OpenAIChatModel and OllamaProvider
