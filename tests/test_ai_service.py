@@ -28,7 +28,7 @@ def test_task_analysis_agent_default():
     with patch.dict(os.environ, {}, clear=True):
         agent_service = TaskAnalysisAgent()
         assert agent_service.model_name == "gpt-oss:120b"
-        assert agent_service.base_url == "http://localhost:11434/v1"
+        assert agent_service.base_url == "https://ollama.com/v1/"
 
 @pytest.mark.asyncio
 async def test_analyze_content_success():

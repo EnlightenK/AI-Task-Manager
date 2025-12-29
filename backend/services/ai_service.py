@@ -18,7 +18,7 @@ class TaskAnalysisAgent:
     def __init__(self, model_name: Optional[str] = None, base_url: Optional[str] = None, api_key: Optional[str] = None):
         # Priority: constructor arg > environment variable > default value
         self.model_name = model_name or os.getenv("OLLAMA_MODEL", "gpt-oss:120b")
-        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL", "https://ollama.com/v1/")
         self.api_key = api_key or os.getenv("OLLAMA_API_KEY")
         
         # Configure the Ollama model using OpenAIChatModel and OllamaProvider
