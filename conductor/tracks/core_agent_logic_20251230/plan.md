@@ -1,9 +1,9 @@
 ﻿# Plan: Core AI Agent Logic
 
-## Phase 1: Domain Models
+## Phase 1: Domain Models [checkpoint: c2e95d7]
 - [x] Task: Create Pydantic models for `Project` and `TeamMember` in `backend/core/models.py`. (3f8b4ee)
 - [x] Task: Create Pydantic model for `TaskProposal` in `backend/core/models.py` with validation fields. (3f8b4ee)
-- [ ] Task: Conductor - User Manual Verification 'Domain Models' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Domain Models' (Protocol in workflow.md) (c2e95d7)
 
 ## Phase 2: File Parsers
 - [ ] Task: Create abstract base class `FileParser` in `backend/utils/parsers.py`.
