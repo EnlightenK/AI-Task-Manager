@@ -1,29 +1,39 @@
 import logging
 import os
 from typing import List, Optional
+from dotenv import load_dotenv
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
 from backend.core.models import TaskProposal
 from backend.utils.config import load_projects, load_team
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Setup logging
 logger = logging.getLogger(__name__)
 
 class TaskAnalysisAgent:
-    def __init__(self, model_name: str = "gpt-oss:120b", base_url: str = "http://localhost:11434/v1"):
-        self.model_name = model_name
-        self.base_url = base_url
+    def __init__(self, model_name: Optional[str] = None, base_url: Optional[str] = None, api_key: Optional[str] = None):
+        # Priority: constructor arg > environment variable > default value
+        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "gpt-oss:120b")
+        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+        self.api_key = api_key or os.getenv("OLLAMA_API_KEY")
+        
         # Configure the Ollama model using OpenAIChatModel and OllamaProvider
         self.model = OpenAIChatModel(
             model_name=self.model_name,
-            provider=OllamaProvider(base_url=self.base_url)
+            provider=OllamaProvider(
+                base_url=self.base_url,
+                api_key=self.api_key
+            )
         )
         self.agent = Agent(
             self.model,
             output_type=TaskProposal,
             system_prompt="You are an expert Civil Engineering Project Manager AI (The Sentinel).",
-            retries=3  # Increase retries to handle validation errors
+            retries=3
         )
         self._setup_agent()
 
@@ -45,15 +55,20 @@ class TaskAnalysisAgent:
             **Engineering Team:**
             {team_str}
 
-            **Rules:**
-            1. EXTRACT a 10-20 word action-oriented summary for the title.
-            2. EXTRACT the detailed description.
-            3. EXTRACT the deadline. If none is explicitly stated, return null/None.
-            4. ASSIGN to the most appropriate team member based on their Role, Duties, and assigned Projects.
-               - CRITICAL: You MUST ONLY assign tasks to a team member if the Project ID matches one of their allowed 'projects'.
-               - If no match found, return null/None.
-            5. IDENTIFY the Project ID based on the content context. If unsure, return null/None.
-            6. PROVIDE a confidence score between 0.0 and 1.0.
+            **Instructions:**
+            Analyze the content and extract the following information.
+            
+            1. **title**: A 10-20 word action-oriented summary.
+            2. **description**: detailed description.
+            3. **deadline**: The deadline if stated, otherwise null.
+            4. **project_id**: The matching Project ID from the list above.
+            5. **assigned_to**: The name of the team member whose role and projects match the task.
+            6. **confidence**: A score between 0.0 and 1.0.
+
+            **CRITICAL:** 
+            - Use the `final_result` tool to return your answer.
+            - Do NOT call any other tools.
+            - Do NOT output multiple JSON objects.
             """
 
     async def analyze_content(self, content: str) -> TaskProposal:
