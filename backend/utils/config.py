@@ -6,6 +6,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = BASE_DIR / "data"
 INBOX_DIR = BASE_DIR / "inbox"
+STAGING_DIR = BASE_DIR / "staging"
 PROCESSED_DIR = BASE_DIR / "processed"
 
 PROJECTS_FILE = DATA_DIR / "projects.json"
