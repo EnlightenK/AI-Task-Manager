@@ -3,6 +3,7 @@ from pathlib import Path
 import email
 from email import policy
 import extract_msg
+import codecs
 
 class FileParser(ABC):
     @abstractmethod
@@ -22,7 +23,13 @@ class EmailFileParser(FileParser):
             return msg.body
         elif suffix == ".eml":
             with open(file_path, "rb") as f:
-                msg = email.message_from_binary_file(f, policy=policy.default)
+                raw_data = f.read()
+            
+            # Remove UTF-8 BOM if present
+            if raw_data.startswith(codecs.BOM_UTF8):
+                raw_data = raw_data[len(codecs.BOM_UTF8):]
+                
+            msg = email.message_from_bytes(raw_data, policy=policy.default)
             
             body = ""
             if msg.is_multipart():

@@ -3,6 +3,7 @@ from pathlib import Path
 import extract_msg
 import email
 from email import policy
+import codecs
 from backend.services.ai_service import analyze_content
 from backend.services.db_service import create_task
 from backend.utils.file_ops import move_to_processed
@@ -32,11 +33,17 @@ def extract_content(file_path: Path) -> tuple[str, str]:
             
         elif file_path.suffix.lower() == '.eml':
             with open(file_path, 'rb') as f:
-                msg = email.message_from_binary_file(f, policy=policy.default)
-                subject = msg['subject'] or file_path.name
-                body_part = msg.get_body(preferencelist=('plain', 'html'))
-                body = body_part.get_content() if body_part else ""
-                return subject, body
+                raw_data = f.read()
+            
+            # Remove UTF-8 BOM if present
+            if raw_data.startswith(codecs.BOM_UTF8):
+                raw_data = raw_data[len(codecs.BOM_UTF8):]
+
+            msg = email.message_from_bytes(raw_data, policy=policy.default)
+            subject = msg['subject'] or file_path.name
+            body_part = msg.get_body(preferencelist=('plain', 'html'))
+            body = body_part.get_content() if body_part else ""
+            return subject, body
         else:
             return file_path.name, f"Unsupported file type: {file_path.suffix}"
             
