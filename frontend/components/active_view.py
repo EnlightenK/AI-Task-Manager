@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from frontend.services.api_client import fetch_tasks, update_task_details, archive_task, fetch_projects, fetch_team
+from frontend.services.api_client import fetch_tasks, update_task_details, archive_task, reject_task, fetch_projects, fetch_team
 
 def render_active_view():
     st.header("Active Tasks (Execution)")
@@ -66,10 +66,15 @@ def render_active_view():
 
             with st.container(border=True):
                 # Actions Bar
-                c_done, c_space = st.columns([1, 5])
+                c_done, c_del, c_space = st.columns([1.5, 1, 4])
                 with c_done:
                     if st.button("✅ Mark as Complete", type="primary"):
                         archive_task(selected_task['id'])
+                        st.session_state["selected_task_id"] = None
+                        st.rerun()
+                with c_del:
+                    if st.button("🗑️ Delete", type="secondary"):
+                        reject_task(selected_task['id'])
                         st.session_state["selected_task_id"] = None
                         st.rerun()
 
@@ -104,6 +109,6 @@ def render_active_view():
                         st.success("Task updated successfully!")
                         st.rerun()
         else:
-            st.info("Selected task not found (it might have been completed).")
+            st.info("Selected task not found (it might have been completed or deleted).")
     else:
         st.info("Select a task from the table above to view details and edit.")
