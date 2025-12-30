@@ -25,15 +25,39 @@ def render_history_view():
         'source_file': 'Source File'
     }, inplace=True)
 
-    # Use session state to track selection if we want to add "Undo" functionality via selection
-    # For history, maybe just a table is fine, but "Undo" is useful.
-    # Let's use the same pattern: Table -> Detail/Action
+    # --- Filters ---
+    with st.expander("🔍 Filters", expanded=True):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            search_query = st.text_input("Search History", placeholder="Type summary or source...").lower()
+        with c2:
+            unique_projects = ["All"] + sorted(display_df['Project'].unique().tolist())
+            selected_project = st.selectbox("Filter by Project", unique_projects, key="hist_proj")
+        with c3:
+            unique_assignees = ["All"] + sorted(display_df['Assignee'].unique().tolist())
+            selected_assignee = st.selectbox("Filter by Assignee", unique_assignees, key="hist_assign")
+
+    # Apply Filters
+    filtered_df = display_df.copy()
     
+    if search_query:
+        # Search in Summary OR Source File
+        filtered_df = filtered_df[
+            filtered_df['Summary'].str.lower().str.contains(search_query) | 
+            filtered_df['Source File'].str.lower().str.contains(search_query)
+        ]
+        
+    if selected_project != "All":
+        filtered_df = filtered_df[filtered_df['Project'] == selected_project]
+        
+    if selected_assignee != "All":
+        filtered_df = filtered_df[filtered_df['Assignee'] == selected_assignee]
+
     if "hist_selected_task_id" not in st.session_state:
         st.session_state["hist_selected_task_id"] = None
 
     event = st.dataframe(
-        display_df,
+        filtered_df,
         use_container_width=True,
         hide_index=True,
         selection_mode="single-row",
@@ -43,7 +67,7 @@ def render_history_view():
     selected_rows = event.selection.rows
     if selected_rows:
         index = selected_rows[0]
-        selected_task_id = display_df.iloc[index]['ID']
+        selected_task_id = filtered_df.iloc[index]['ID']
         st.session_state["hist_selected_task_id"] = selected_task_id
 
     st.divider()
@@ -58,6 +82,7 @@ def render_history_view():
                 st.write(f"**Assignee:** {selected_task['assignee']}")
                 st.write(f"**Due Date:** {selected_task['deadline']}")
                 st.write(f"**Source File:** {selected_task['source_file']}")
+                st.write(f"**AI Reasoning:** {selected_task.get('reasoning', 'N/A')}")
                 
                 if st.button("↩️ Undo (Move to Active)", key="undo_btn"):
                     update_task_details(selected_task['id'], {"status": "APPROVED"})
@@ -66,5 +91,7 @@ def render_history_view():
                     st.rerun()
         else:
             st.info("Selected task not found.")
+    elif filtered_df.empty:
+        st.warning("No history items match the selected filters.")
     else:
         st.info("Select a task to view details or undo archival.")
