@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from backend.services.db_service import get_tasks, update_task, delete_task as db_delete_task
-from backend.utils.config import load_projects, load_team
+from backend.utils.config import load_projects, load_team, save_projects as db_save_projects, save_team as db_save_team
 
 def fetch_tasks(status: Optional[str] = None) -> List[Dict[str, Any]]:
     """
@@ -46,8 +46,20 @@ def fetch_projects() -> List[Dict[str, Any]]:
     """
     return load_projects()
 
+def update_projects(projects: List[Dict[str, Any]]):
+    """
+    Saves the list of projects.
+    """
+    db_save_projects(projects)
+
 def fetch_team() -> List[Dict[str, Any]]:
     """
     Fetches the list of team members.
     """
     return load_team()
+
+def update_team(team: List[Dict[str, Any]]):
+    """
+    Saves the list of team members.
+    """
+    db_save_team(team)

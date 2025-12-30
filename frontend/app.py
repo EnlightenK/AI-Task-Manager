@@ -8,6 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from frontend.components.inbox_view import render_inbox_view
 from frontend.components.active_view import render_active_view
 from frontend.components.history_view import render_history_view
+from frontend.components.settings_view import render_settings_view
 from frontend.services.watcher_manager import get_watcher_manager
 
 st.set_page_config(
@@ -38,8 +39,8 @@ def main():
         st.divider()
         st.info("The watcher monitors the `inbox/` folder for new files.")
 
-    # Simple Tab Layout
-    tab1, tab2, tab3 = st.tabs(["Inbox (Triage)", "Active Tasks", "History"])
+    # Main Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["Inbox (Triage)", "Active Tasks", "History", "Settings"])
     
     with tab1:
         render_inbox_view()
@@ -49,6 +50,9 @@ def main():
         
     with tab3:
         render_history_view()
+        
+    with tab4:
+        render_settings_view()
 
 if __name__ == "__main__":
     main()
