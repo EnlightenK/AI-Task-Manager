@@ -1,0 +1,51 @@
+{
+    "team": [
+        {
+            "name": "Alice",
+            "role": "Senior Structural Engineer",
+            "duties": [
+                "Finite Element Analysis",
+                "Code Compliance",
+                "Steel Design"
+            ],
+            "projects": [
+                "SB-01"
+            ]
+        },
+        {
+            "name": "Bob",
+            "role": "Civil/Hydraulic Engineer",
+            "duties": [
+                "Stormwater Modeling",
+                "Grading Plans",
+                "Utility Coordination"
+            ],
+            "projects": [
+                "DDU-99"
+            ]
+        },
+        {
+            "name": "Charlie",
+            "role": "CAD/BIM Manager",
+            "duties": [
+                "Drawing Standards",
+                "Clash Detection",
+                "Revit/Civil3D Model Management"
+            ],
+            "projects": [
+                "SB-01",
+                "DDU-99"
+            ]
+        },
+        {
+            "name": "Jess",
+            "role": "Engineer",
+            "duties": [
+                "Coordinate"
+            ],
+            "projects": [
+                "DDU-99"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+watchdog
+extract-msg
+pydantic-ai
+streamlit
+logfire

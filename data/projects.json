@@ -1,0 +1,19 @@
+{
+    "projects": [
+        {
+            "id": "SB-01",
+            "name": "Suspension Bridge Feasibility",
+            "context": "Preliminary design phase, focus on cable anchorage and pylon aesthetics."
+        },
+        {
+            "id": "DDU-99",
+            "name": "Downtown Drainage Upgrade",
+            "context": "Hydraulic modeling and stormwater pipe sizing for City Center."
+        },
+        {
+            "id": "CE40",
+            "name": "CE40 HSK to LSF",
+            "context": "Tunnel Design"
+        }
+    ]
+}

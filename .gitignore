@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.env
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Databases
+*.db
+*.sqlite3
+
+# Project Specific
+inbox/*
+!inbox/.gitkeep
+staging/
+processed/
+mock email/
+
+# Local configuration
+fields.txt
+debug_eml.py
