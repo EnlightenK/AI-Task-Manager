@@ -5,19 +5,18 @@ AI Sentinel is a privacy-first, local automation tool designed for Civil Enginee
 ## Features
 
 -   **Automated Ingestion:** Watches the `inbox/` folder for `.txt`, `.msg`, and `.eml` files.
--   **AI Analysis:** Uses local LLMs (via Ollama) to extract summaries, deadlines, and assign projects/engineers.
--   **Dashboard:** A Streamlit-based UI for triaging pending tasks, managing active work, and viewing history.
--   **Privacy First:** All processing happens locally; no data is sent to the cloud.
+-   **Robust Processing:** Uses a staging pattern to prevent race conditions during file ingestion.
+-   **AI Analysis:** Uses local LLMs (via Ollama Cloud or local instance) to extract summaries, deadlines, and assign projects/engineers.
+-   **Dashboard:** A Streamlit-based UI for triaging pending tasks, managing active work with sortable tables, and viewing history.
+-   **Settings Management:** In-app management of Projects and Team Members via the Settings tab.
+-   **Privacy First:** Optimized for local or private cloud LLM deployments.
 
 ## Prerequisites
 
 *   **Python:** 3.12 or higher
 *   **uv:** An extremely fast Python package installer and resolver. [Install uv](https://github.com/astral-sh/uv).
-*   **Ollama:** For running the local LLM. [Install Ollama](https://ollama.com/).
-    *   **CRITICAL:** You must have the `llama3.2` model installed. Run:
-        ```bash
-        ollama pull llama3.2
-        ```
+*   **Ollama:** For running the LLM. [Install Ollama](https://ollama.com/).
+    *   **Default Model:** The system is configured for `gpt-oss:120b`. Ensure you have access to this model or update the configuration.
 
 ## Installation
 
@@ -31,69 +30,63 @@ This project uses `uv` for modern Python dependency management.
     uv sync
     ```
 
-3.  **Activate the virtual environment (Optional):**
-    `uv run` can execute commands in the environment without explicit activation, but if you prefer:
-    *   **Windows:** `.venv\Scripts\activate`
-    *   **macOS/Linux:** `source .venv/bin/activate`
+3.  **Setup Environment Variables:**
+    Copy the example environment file and fill in your details (especially if using Ollama Cloud).
+    ```bash
+    cp .env.example .env
+    ```
+
+## Usage
+
+### 1. Start the Dashboard
+Launch the Streamlit UI to manage the entire system.
+
+```bash
+uv run streamlit run frontend/app.py
+```
+
+### 2. Initialize the Watcher
+Once the dashboard is open:
+1.  Locate the **System Status** section in the sidebar.
+2.  Click **"Start Watcher"**. This starts the background service that monitors the `inbox/` folder.
+
+### 3. Workflow
+1.  **Ingest:** Drop an email (`.msg`, `.eml`) or text file (`.txt`) into the `inbox/` directory.
+2.  **Triage:** Go to the **Inbox** tab. Review the AI's analysis, edit if necessary, and click **Approve** (or **Reject** to delete).
+3.  **Execute:** The task moves to the **Active Tasks** tab. Select a task from the table to edit details or mark it as complete.
+4.  **Archive:** Completed tasks are moved to the **History** tab where they can be viewed or restored.
+5.  **Configure:** Use the **Settings** tab to add new projects or update team member assignments.
 
 ## Development & Testing
 
-We use `pytest` for testing. Since the project is in active development, running tests is the best way to verify the system is set up correctly.
+We use `pytest` for testing.
 
 ### Run All Tests
 ```bash
 uv run pytest
 ```
 
-### Verify Core Components
-To manually verify the AI Agent (requires Ollama running):
-```bash
-uv run python -c "from backend.services.ai_service import TaskAnalysisAgent; agent = TaskAnalysisAgent(); print(f'Agent initialized with {agent.model_name} successfully!')"
-```
+## Configuration (.env)
 
-## Usage
-
-### 1. Start the Backend Service
-This service watches the `inbox/` folder and processes new files.
-*(Note: Ensure `inbox/` directory exists)*
-
-```bash
-uv run python backend/main.py
-```
-
-### 2. Start the Frontend Dashboard
-Launch the Streamlit UI to view and manage tasks.
-
-```bash
-uv run streamlit run frontend/app.py
-```
-
-### 3. Workflow
-1.  **Ingest:** Drop an email (`.msg`, `.eml`) or text file (`.txt`) into the `inbox/` directory.
-2.  **Triage:** Go to the **Inbox** tab in the dashboard. Review the AI's analysis, edit if necessary, and click **Approve**.
-3.  **Execute:** The task moves to the **Active Tasks** tab. Work on the task, edit details if needed, and check the box when complete.
-4.  **Archive:** Completed tasks are moved to the **History** tab.
-
-## Configuration
-
-*   **Projects:** Define active projects in `data/projects.json`.
-*   **Team:** Define team members and their roles in `data/team.json`.
-*   **Environment Variables:**
-    *   `OLLAMA_BASE_URL`: Defaults to `http://localhost:11434/v1`. Set this if your Ollama instance is on a different port/host.
+*   **OLLAMA_MODEL:** Defaults to `gpt-oss:120b`.
+*   **OLLAMA_BASE_URL:** Defaults to `https://ollama.com/v1/`.
+*   **OLLAMA_API_KEY:** Your API key for the Ollama service.
 
 ## Directory Structure
 
 ```text
 /AI_Sentinel
 ├── backend/            # Python backend
-│   ├── core/           # Core domain models and logic
-│   ├── services/       # AI and Database services
-│   └── utils/          # Config and file parsers
-├── frontend/           # Streamlit frontend application
-├── data/               # Configuration and SQLite database
+│   ├── core/           # Orchestration and Watcher logic
+│   ├── services/       # AI Agent (PydanticAI) and Database services
+│   └── utils/          # Config, Parsers, and DB initialization
+├── frontend/           # Streamlit frontend
+│   ├── components/     # UI Views (Inbox, Active, History, Settings)
+│   └── services/       # API Client and Watcher Manager
+├── data/               # SQLite database and JSON config files
 ├── inbox/              # Drop incoming files here
-├── processed/          # Processed files are moved here
-├── tests/              # Unit and integration tests
-├── conductor/          # Project management and setup docs
-└── pyproject.toml      # Project dependencies and config
+├── staging/            # Temporary folder for active processing
+├── processed/          # Successfully processed files
+├── tests/              # Comprehensive test suite
+└── pyproject.toml      # Project dependencies
 ```
